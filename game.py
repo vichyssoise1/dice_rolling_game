@@ -1,42 +1,36 @@
 # game.py
 
-from typing import Optional
 from player import Player
 
 
 class Game:
-    def __init__(self, player_one: Player, player_two: Player, rounds_to_win: int = 3) -> None:
-        self.player_one = player_one
-        self.player_two = player_two
-        self.rounds_to_win = rounds_to_win
-        self.score_one = 0
-        self.score_two = 0
+    """
+    Turn-based HP battle: each roll inflicts damage
+    until one player's health reaches zero.
+    """
 
-    def play_round(self) -> Optional[Player]:
-        roll_one = self.player_one.roll_dice()
-        roll_two = self.player_two.roll_dice()
+    def __init__(self, player_one: Player, player_two: Player) -> None:
+        self.attacker = player_one
+        self.defender = player_two
 
-        if roll_one > roll_two:
-            self.score_one += 1
-            print(f"{self.player_one.name} wins the round!\n")
-            return self.player_one
-        elif roll_two > roll_one:
-            self.score_two += 1
-            print(f"{self.player_two.name} wins the round!\n")
-            return self.player_two
-        else:
-            print("It's a tie! No score change.\n")
-            return None
-
-    def display_score(self) -> None:
-        print(f"Score → {self.player_one.name}: {self.score_one} | {self.player_two.name}: {self.score_two}\n")
+    def play_turn(self) -> None:
+        damage = self.attacker.roll_dice()
+        self.defender.take_damage(damage)
+        print(f"{self.attacker.name} deals {damage} damage!")
+        print(f"{self.defender.name} HP: {self.defender.health_bar}\n")
 
     def play_game(self) -> Player:
-        print(f"First to {self.rounds_to_win} wins!\n")
-        while self.score_one < self.rounds_to_win and self.score_two < self.rounds_to_win:
-            self.play_round()
-            self.display_score()
+        print("Battle start!\n")
+        # Show initial health
+        print(f"{self.attacker.name} HP: {self.attacker.health_bar}")
+        print(f"{self.defender.name} HP: {self.defender.health_bar}\n")
 
-        winner = self.player_one if self.score_one >= self.rounds_to_win else self.player_two
-        print(f"🏆 {winner.name} is the champion! 🏆")
+        # Alternate turns until one falls
+        while self.attacker.is_alive() and self.defender.is_alive():
+            self.play_turn()
+            # swap roles
+            self.attacker, self.defender = self.defender, self.attacker
+
+        winner = self.attacker if self.attacker.is_alive() else self.defender
+        print(f"🏆 {winner.name} wins the battle! 🏆")
         return winner
